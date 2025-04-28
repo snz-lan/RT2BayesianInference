@@ -142,8 +142,6 @@ log_density <- function(infections, recoveries, beta, gamma, N) {
 
   log_infection <- 0
   if (length(infections) > 1) {
-    #I FIXED IT
-    #I FIXEDDD ITTTTT!!!
     #infection_mask <- times %in% infections
     infection_mask <- times %in% infections
     infect_X <- X_t[infection_mask][-1]
@@ -152,7 +150,7 @@ log_density <- function(infections, recoveries, beta, gamma, N) {
     log_infection <- sum(log(beta) + log(infect_X[valid_infect]) + log(infect_Y[valid_infect]))
   }
 
-  # Integral term using rectangular approximation
+  #integral term using rectangular approximation
   integral_term <- 0
   # for (i in 1:(length(times) - 1)) {
   #   delta_t <- times[i + 1] - times[i]
@@ -167,9 +165,9 @@ log_density <- function(infections, recoveries, beta, gamma, N) {
   }
 
 
-  # Add final bit if last event < T_max
+  #this final bit if last event < T_max
   if (tail(times, 1) < T_max) {
-    delta_t <- T_max - tail(times, 1)
+    delta_t <- T_max-tail(times,1)
     integral_term <- integral_term +
       delta_t * (beta * tail(X_t, 1) * tail(Y_t, 1) + gamma * tail(Y_t, 1))
   }
@@ -182,19 +180,19 @@ log_density <- function(infections, recoveries, beta, gamma, N) {
 }
 
 update_beta <- function(paths, lambda_beta, nu_beta) {
-  t   <- paths$times
-  X   <- paths$X
-  Y   <- paths$Y
-  T0  <- max(t)                      # length of observation window
+  t <- paths$times
+  X <- paths$X
+  Y <- paths$Y
+  T0<- max(t)                      # length of observation window
 
-  # non-dimensional ∫0^1 X(u)Y(u) du
+  #non-dimensional ∫0^1 X(u)Y(u) du
   dt_star <- diff(t) / T0
   int_XY  <- sum(dt_star * (X[-length(X)] * Y[-length(Y)]))
 
-  m       <- length(t) - 1           # total infections
-  #m <- sum(t %in% infections) - 1
+  m       <- length(t)-1           # total infections
+  #m <- sum(t %in% infections)-1
 
-  shape   <- lambda_beta + int_XY
+  shape   <- lambda_beta+int_XY
   rate    <- (m - 1) + nu_beta
   beta_star <- rgamma(1, shape = shape, rate = rate)
 
@@ -211,7 +209,7 @@ update_gamma <- function(paths, lambda_gamma, nu_gamma) {
   dt_star <- diff(t) / T0
   int_Y   <- sum(dt_star * Y[-length(Y)])
 
-  n       <- length(t) - 1           # total removals
+  n       <- length(t)-1           # total removals
   shape   <- lambda_gamma + int_Y
   rate    <- n + nu_gamma
   gamma_star <- rgamma(1, shape = shape, rate = rate)
@@ -219,7 +217,8 @@ update_gamma <- function(paths, lambda_gamma, nu_gamma) {
   return(gamma_star/T0)
 }
 
-
+#main rjmcmc sampler
+#input partial recoveries, pop size, max(rec), prob of add/remove
 rjmcmc_diagnostics_adapt_old <- function(
     rec, N, T_max, z,M=2000,
     L_move    = 20,
