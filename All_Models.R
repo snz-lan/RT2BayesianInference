@@ -77,22 +77,6 @@ GibSIR<-function(N,M,i,r,beta_init,gamma_init){
 }
 
 
-m=GibSIR(100,1000,sets$is,sets$rs,0.1,0.01)
-#function to test the accuracy of our GibSIR
-
-testg<-function(beta, gamma, N, M){
-  finalsim<-getsetsSIR(N,1,0.2)
-  finalsim<-sets
-  N=100
-  M=2000
-  values<-GibSIR(N,M,finalsim$is, finalsim$rs,0,0)
-  #lines(values$Beta)
-  betaf<-tail(values$Beta,n=1)
-  gammaf<-tail(values$Gamma,n=1)
-  return(list("Your Beta:"=betaf, "Actual Beta:"=beta,
-              "Your Gamma:"=gammaf, "Actual Gamma:"=gamma))
-}
-
 
 #------------------------------------------------------------
 # MCMC FOR BETA, GAMMA, i | r (by Gibbs+M-H)
@@ -304,24 +288,15 @@ logMCMC_MH_GIB <- function(N, M, init_i, r, beta_init, gamma_init) {
     }
     #update the working infection vector for the next iteration.
     i <- i_current
-    #print("iter")
-    #print(k)
+    print("iter")
+    print(k)
   }
 
   return(list("Beta" = betav, "Gamma" = gammav, "infection" = main_i))
 }
 
 
-sets<-getsetsSIR(100,1,0.2)
-sets2<-getsetsSIR(100,2,1)
-
 #MCMC
-results <- MCMC_MH_GIB(N = 100, M = 1000, I = sets$I, init_i = sets$rs/2, r = sets$rs,sets$ts, beta_init = 0, gamma_init = 0)
-results4 <- MCMC_MH_GIB(N = 100, M = 1000, I = sets2$I, init_i = sets2$rs/2, r = sets2$rs,sets2$ts, beta_init = 0, gamma_init = 0)
-
-results2 <- logMCMC_MH_GIB(N = 100, M = 1000, I = sets2$I, init_i = sets2$rs/2, r = sets2$rs,sets2$ts, beta_init = 0, gamma_init = 0)
-results3 <- logMCMC_MH_GIB(N = 100, M = 2000, init_i = sets$rs/2, r = sets$rs, beta_init = 0, gamma_init = 0)
-
 #function to remove burn-in
 
 remove_burnin <- function(mcmc_matrix, burnin) {
@@ -332,65 +307,6 @@ remove_burnin <- function(mcmc_matrix, burnin) {
 }
 
 
-#PLOTTING ALL THE RESULTS TO VISUALIZE MIXING
-
-#MCMC traces
-individual_55_infection_times <- results3$infection[, 55]
-beta_chain <- results3$Beta
-gamma_chain <- results3$Gamma
-burn_inf<-remove_burnin(results3$infection,0)
-
-
-
-#plot infection times for individuals 30 and 60
-
-par(mfrow = c(2, 1))
-
-plot(burn_inf[, 30], type = "l",
-     main = "Individual 30",
-     xlab = "Iteration", ylab = "Infection Time")
-grid(col = "grey", lty = 2,lwd=1) # Draw light grid
-lines(burn_inf[, 30], col = "black", lwd = 1)  # Now draw the actual trace
-abline(h = sets$is[30], col = "red", lwd = 3, lty=2)
-
-
-plot(burn_inf[, 60], type = "l",
-     main = "Individual 60",
-     xlab = "Iteration", ylab = "Infection Time")
-grid(col = "grey", lty = 2,lwd=1) # Draw light grid
-lines(burn_inf[, 60], col = "black", lwd = 1)  # Now draw the actual trace
-abline(h = sets$is[60], col = "red", lwd = 3, lty=2)
-
-
-plot(burn_inf[, 59], type = "l",
-     main = "Infection Time (Ind. 50)",
-     xlab = "Iteration", ylab = "Infection Time")
-abline(h = sets$is[59], col = "red", lwd = 2, lty=2)
-
-
-beta_chain<-remove_burnin(beta_chain,50)
-gamma_chain<-remove_burnin(gamma_chain,50)
-
-
-par(mfrow = c(2, 1))
-
-plot(beta_chain[1:length(beta_chain)], type = "l",
-     main = expression("Trace plot of " * beta),
-     xlab = "Iteration", ylab = expression(beta))
-grid(col = "grey", lty = 2,lwd=1) # Draw light grid
-lines(beta_chain, col = "black", lwd = 1)  # Now draw the actual trace
-
-abline(h = 1, col = "red", lwd = 2,lty=2)
-
-plot(gamma_chain[1:length(gamma_chain)], type = "l",
-     main = expression("Trace plot of " * gamma),
-     xlab = "Iteration", ylab = expression(gamma))
-grid(col = "grey", lty = 2,lwd=1) # Draw light grid
-lines(gamma_chain, col = "black", lwd = 1)  # Now draw the actual trace
-
-abline(h = 0.2, col = "red", lwd = 2,lty=2)
-
-#legend("topright", legend = "True value", col = "darkred", lty = 2, lwd = 1.5, bty = "n", cex = 0.8)
 
 
 
